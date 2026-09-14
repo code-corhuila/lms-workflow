@@ -5,6 +5,17 @@
 Part of the **LMS Library** distributed system — team `lms-library`, Grupo 2.
 Governance and documentation live in [`library-docs`](https://github.com/code-corhuila/library-docs).
 
+## Migration scope
+
+**From scratch** — nothing in `lms-library` covers this today.
+
+Scope: the loan lifecycle as a saga — loan → renewal → return → penalty — orchestrating
+`lms-circulation-api`, `lms-membership-api` and `lms-catalog-api` with compensation on failure.
+
+The full map lives in `library-docs`.
+
+---
+
 ## Branching
 
 Three permanent branches. **None of them accepts a direct commit** — you enter through a child
