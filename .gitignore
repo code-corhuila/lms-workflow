@@ -1,0 +1,23 @@
+# Binaries
+/bin/
+*.exe
+*.test
+*.out
+
+# Go build/test artifacts
+coverage.out
+
+# Dependency vendoring (not used — go.sum pins versions)
+/vendor/
+
+# Environment
+.env
+*.pem
+
+# Liquibase local run artifacts
+.liquibase/
+liquibase.log
+
+# IDE
+.idea/
+.vscode/
