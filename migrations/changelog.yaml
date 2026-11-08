@@ -1,0 +1,59 @@
+# Flat Liquibase changelog — a deliberate simplification of the full
+# 01_ddl/02_dml/03_dcl/04_tcl/05_rollbacks tree every `-db` repo uses
+# (README's "Migration scope" explains why: this schema lives inside
+# lms-workflow itself, not a separate `-db` repo). Rollbacks are inline here
+# rather than in separate .rollback.sql files, for the same reason.
+databaseChangeLog:
+  - changeSet:
+      id: workflow-001
+      author: OscarAreiza
+      labels: "governance,ddl,schemas"
+      comment: "workflow: this domain's own schema, never public"
+      changes:
+        - sqlFile:
+            path: 001_create_schema_workflow.sql
+            relativeToChangelogFile: true
+            splitStatements: false
+      rollback:
+        - sql: "DROP SCHEMA IF EXISTS workflow CASCADE;"
+  - changeSet:
+      id: workflow-002
+      author: OscarAreiza
+      labels: "ADR-008,ddl,tables"
+      comment: "saga_run: the saga's own durable state (ADR-008)"
+      changes:
+        - sqlFile:
+            path: 002_create_saga_run_table.sql
+            relativeToChangelogFile: true
+            splitStatements: false
+      rollback:
+        - sql: "DROP TABLE IF EXISTS workflow.saga_run;"
+  - changeSet:
+      id: workflow-003
+      author: OscarAreiza
+      labels: "governance,ddl,indexes"
+      comment: "operator lookup by status, without a full table scan"
+      changes:
+        - sqlFile:
+            path: 003_create_indexes.sql
+            relativeToChangelogFile: true
+            splitStatements: false
+      rollback:
+        - sql: "DROP INDEX IF EXISTS workflow.idx_saga_run_status;"
+  - changeSet:
+      id: workflow-004
+      author: OscarAreiza
+      labels: "governance,dcl,roles"
+      comment: "workflow_reader/workflow_writer, NOLOGIN; writer granted to workflow_app"
+      changes:
+        - sqlFile:
+            path: 004_create_roles_and_grants.sql
+            relativeToChangelogFile: true
+            splitStatements: false
+      rollback:
+        - sql: |
+            REVOKE workflow_writer FROM workflow_app;
+            REVOKE ALL ON workflow.saga_run FROM workflow_reader, workflow_writer;
+            REVOKE USAGE ON SCHEMA workflow FROM workflow_reader, workflow_writer;
+            DROP ROLE IF EXISTS workflow_reader;
+            DROP ROLE IF EXISTS workflow_writer;
