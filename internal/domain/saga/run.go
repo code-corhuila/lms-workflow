@@ -67,6 +67,14 @@ func (r *Run) Completed() {
 // operator visibility (ADR-008's "Saga state").
 func (r *Run) Failed(err error) {
 	r.Status = StatusFailed
+	r.RecordFailure(err)
+}
+
+// RecordFailure records a step's error without changing Status. Used when
+// step two (suspend) fails after step one already succeeded: the run stays
+// MARKED_LATE, so the next retry resumes at the suspend step instead of
+// repeating mark-late (forward-recovery only, ADR-008).
+func (r *Run) RecordFailure(err error) {
 	r.AttemptCount++
 	if err != nil {
 		r.LastError = err.Error()
