@@ -55,10 +55,11 @@ func (uc *ApplyPenalty) Execute(ctx context.Context, loan saga.OverdueLoan) erro
 		}
 	}
 
-	// Step two — never rolled back on failure (forward-recovery only); a
-	// retry resumes here directly since run.Status is already MARKED_LATE.
+	// Step two — never rolled back on failure (forward-recovery only). The
+	// failure is recorded without leaving MARKED_LATE, so a retry resumes
+	// here directly instead of repeating mark-late.
 	if err := uc.Membership.Suspend(ctx, loan.StudentID); err != nil {
-		run.Failed(fmt.Errorf("suspending student: %w", err))
+		run.RecordFailure(fmt.Errorf("suspending student: %w", err))
 		_ = uc.Runs.Save(ctx, run)
 		return err
 	}
