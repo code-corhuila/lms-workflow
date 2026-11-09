@@ -1,0 +1,29 @@
+# This domain's Liquibase migration executor only — no database service, no
+# volume. The single PostgreSQL instance this applies to is owned by
+# lms-infra-postgres (rules/3-Anexo-J, J.3.1), which `include:`s this file.
+# Embedded here (not a separate lms-workflow-db repo) because the course's
+# fixed 18-repo topology never assigned lms-workflow its own -db — see this
+# repo's README for the full reasoning.
+services:
+  workflow-migrate:
+    image: liquibase/liquibase:4.29
+    container_name: workflow-migrate
+    environment:
+      LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres:5432/${PG_DATABASE:-lms_db}
+      LIQUIBASE_COMMAND_USERNAME: ${PG_ADMIN_USER:-lms_admin}
+      LIQUIBASE_COMMAND_PASSWORD: ${PG_ADMIN_PASSWORD:-change-me-admin-password}
+    volumes:
+      - ..:/liquibase/changelog
+    working_dir: /liquibase/changelog
+    command:
+      - "--defaultsFile=/liquibase/changelog/deploy/liquibase.properties"
+      - "update"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - platform
+
+networks:
+  platform:
+    external: true
